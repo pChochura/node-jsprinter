@@ -8,6 +8,7 @@ var printer_conf = {name: 'jsprinter', port: 40023};
 var printer_url = 'ipp://localhost:' + printer_conf.port + '/printers/' + printer_conf.name;
 var printer = new Printer(printer_conf);
 printer.on('job', function (job) {
+//    console.log(job);
 //    job.stream = temp.createWriteStream();
     jobs.push(job);
 //   job.pipe(job.stream);
@@ -23,12 +24,7 @@ app.get('/', function (req, res) {
         response += 'jobs:</br>';
         jobs.forEach(function (current) {
             response += '<a href=/job/' + current.id + '>';
-            response += current.id + ':';
-            current.attributes.forEach(function (current) {
-                if (current.name === 'job-name') {
-                    response += ' ' + current.value;
-                }
-            });
+            response += current.id + ':' + current.name;
             response += '</a></br>';
         });
         res.send(response);
