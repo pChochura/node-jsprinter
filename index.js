@@ -40,14 +40,19 @@ printer.on('job', function (job) {
 var express = require('express');
 var app = express();
 
+// joblist index route
 app.get('/', function (req, res) {
     if (req.accepts('text/html')) {
         var response = 'printer is at ' + printer_url + '</br>';
         response += 'jobs:</br>';
-        jobs.forEach(function (current) {
+        jobs.forEach(functio n (current) {
             response += '<a href=/job/' + current.id + '>';
             response += current.id + ':' + current.name;
-            response += '</a></br>';
+            response += '</a> ';
+            response += '<a href=/job/' + current.id + '?delete';
+            response += 'forget job';
+            response += '</a>';
+            response += '</br>';
         });
         res.send(response);
     } else {
@@ -55,11 +60,20 @@ app.get('/', function (req, res) {
     }
 });
 
+// job access route
+// TODO: add delete param
 app.get('/job/:id', function (req, res) {
+  // TODO?: switch to hash
     var job = jobs.find(function (element) {
         if (element.id === parseInt(req.params.id)) {return true; }
         return false;
     });
+    // if (delete) {
+    //    jobs.remove(job);
+    //    delete temp
+    //    res.sendStatus(200);
+    //    reload?
+    //    }
     if (job !== undefined) {
         res.set({
             'Content-Type': 'application/postscript',
