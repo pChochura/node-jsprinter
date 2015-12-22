@@ -1,6 +1,6 @@
 {
   "name": "jsprinter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "quick standup print server",
   "repository": "automaticgiant/node-jsprinter",
   "main": "index.js",
@@ -15,12 +15,16 @@
   "author": "automaticgiant@gmail.com",
   "license": "GPL-2.0",
   "dependencies": {
+    "debug": "^2.2.0",
     "express": "^4.13.3",
+    "file-type": "^3.3.1",
     "ipp-printer": "*",
     "temp": "^0.8.3"
   },
   "files": [
     "index.js"
   ],
-  "bin": {"jsprinter": "./index.js"}
+  "bin": {
+    "jsprinter": "./index.js"
+  }
 }

@@ -2,6 +2,8 @@
 exports.init = function () {}
 "use strict";
 
+var debug = require('debug')('jsprinter');
+
 // track chained makes temp cleanup at shutdown
 //var temp = require('temp').track();
 
@@ -34,7 +36,8 @@ printer.on('job', function (job) {
   //  job.pipe(job.stream);
 
     // add to joblist
-    jobs.push(job);
+    debug('got job ' + job.id);
+    jobs[job.id] = job;
 });
 
 var express = require('express');
@@ -44,16 +47,17 @@ var app = express();
 app.get('/', function (req, res) {
     if (req.accepts('text/html')) {
         var response = 'printer is at ' + printer_url + '</br>';
-        response += 'jobs:</br>';
-        jobs.forEach(functio n (current) {
-            response += '<a href=/job/' + current.id + '>';
+        response += 'jobs:</br><ul>';
+        jobs.forEach(function (current) {
+            response += '<li><a href=/job/' + current.id + '>';
             response += current.id + ':' + current.name;
             response += '</a> ';
-            response += '<a href=/job/' + current.id + '?delete';
+            response += '<a href=/job/' + current.id + '?delete>';
             response += 'forget job';
             response += '</a>';
-            response += '</br>';
+            response += '</li>';
         });
+        response += '</ul>';
         res.send(response);
     } else {
         res.status(500).send('Not Implemented Yet');
@@ -61,29 +65,27 @@ app.get('/', function (req, res) {
 });
 
 // job access route
-// TODO: add delete param
 app.get('/job/:id', function (req, res) {
-  // TODO?: switch to hash
-    var job = jobs.find(function (element) {
-        if (element.id === parseInt(req.params.id)) {return true; }
-        return false;
-    });
-    // if (delete) {
-    //    jobs.remove(job);
-    //    delete temp
-    //    res.sendStatus(200);
-    //    reload?
-    //    }
-    if (job !== undefined) {
-        res.set({
-            'Content-Type': 'application/postscript',
-            'Content-Disposition': 'inline; filename=' + job.id + '.ps'
-        });
-        job.pipe(res);
-        return;
-    }
+    var job = jobs[req.params.id];
+    if (job == undefined) {
     res.sendStatus(404);
-});
+    return;
+    }
+    if (req.query.delete !== undefined) {
+      debug('deleting job ' + job.id);
+      delete jobs[job.id];
+      //TODO: delete temp
+      res.redirect('back');
+      return;
+    }
+      res.set({
+          'Content-Type': 'application/postscript',
+          'Content-Disposition': 'inline; filename=' + job.id + '.ps'
+      });
+      job.pipe(res);
+      return;
+    }
+);
 
 var joblist_port = 40024;
 app.listen(joblist_port);
