@@ -30,6 +30,7 @@ printer.on('job', function (job) {
     // add to joblist
     debug('got job ' + job.id);
     jobs[job.id] = job;
+    job.content = job.read();
 });
 
 var express = require('express');
@@ -70,8 +71,7 @@ app.get('/job/:id', function (req, res) {
           'Content-Type': 'application/postscript',
           'Content-Disposition': 'inline; filename=' + job.id + '.ps'
       });
-      job.pipe(res);
-      return;
+      res.send(job.content);
     }
 );
 
