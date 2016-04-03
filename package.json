@@ -1,16 +1,11 @@
 {
   "name": "jsprinter",
   "version": "0.0.3",
-  "description": "quick standup print server",
+  "description": "quick standup print-to-file server",
   "repository": "automaticgiant/node-jsprinter",
-  "main": "index.js",
   "bugs": {
     "url": "https://github.com/automaticgiant/node-jsprinter/issues",
     "email": "automaticgiant@gmail.com"
-  },
-  "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "automaticgiant@gmail.com",
   "license": "GPL-2.0",
@@ -18,13 +13,9 @@
     "debug": "^2.2.0",
     "express": "^4.13.3",
     "file-type": "^3.3.1",
-    "ipp-printer": "*",
-    "temp": "^0.8.3"
+    "ipp-printer": "*"
   },
-  "files": [
-    "index.js"
-  ],
   "bin": {
-    "jsprinter": "./index.js"
+    "jsprinter": "./server.js"
   }
 }
