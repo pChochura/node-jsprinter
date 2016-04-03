@@ -3,6 +3,7 @@
 
 // TODO: change to remove assumed source - use different sources/parts of app
 var debug = require('debug')('jsprinter');
+var fs = require('fs'), path = require('path'), os = require('os');
 
 // joblist
 var jobs = [];
@@ -30,7 +31,21 @@ printer.on('job', function (job) {
     // add to joblist
     debug('got job ' + job.id);
     jobs[job.id] = job;
-    job.content = job.read();
+    job.thepath = path.join(os.tmpdir(), '' + Math.random());
+    debug('trying to open ' + job.thepath);
+    function use_fd(err, fd){
+        if (err) {
+          console.error("couldn't open thepath");
+          return;
+        }
+        job.fd = fd;
+        fs.unlink(job.thepath);
+        // still open - important
+        var out = fs.createWriteStream(null, {fd: fd, autoClose: false});
+        job.pipe(out);
+
+    };
+    fs.open(job.thepath, 'w+', use_fd);
 });
 
 var express = require('express');
@@ -62,6 +77,7 @@ app.get('/job/:id', function (req, res) {
     }
     if (req.query.delete !== undefined) {
       debug('deleting job ' + job.id);
+      fs.close(job.fd);
       delete jobs[job.id];
       //TODO: delete temp
       res.redirect('back');
@@ -71,7 +87,11 @@ app.get('/job/:id', function (req, res) {
           'Content-Type': 'application/postscript',
           'Content-Disposition': 'inline; filename=' + job.id + '.ps'
       });
-      res.send(job.content);
+      var content = fs.createReadStream(null, {
+        start:0, fd: job.fd, autoClose: false});
+      content.pipe(res);
+      //res.send(job.content);
+      return;
     }
 );
 
