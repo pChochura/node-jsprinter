@@ -4,13 +4,14 @@
 // TODO: change to remove assumed source - use different sources/parts of app
 var debug = require('debug')('jsprinter');
 var fs = require('fs'), path = require('path'), os = require('os');
+var env = require('process').env;
 
 // joblist
 var jobs = [];
 
 // ipp-printer configuration
 var Printer = require('ipp-printer');
-var printer_conf = {name: 'jsprinter', port: 40023 || env.IPP_PORT, zeroconf:
+var printer_conf = {name: 'jsprinter', port: env.IPP_PORT || 40023, zeroconf:
   false};
 var printer = new Printer(printer_conf);
 
@@ -95,7 +96,7 @@ app.get('/job/:id', function (req, res) {
     }
 );
 
-var joblist_port = 40024 || env.JOBLIST_PORT;
+var joblist_port = env.JOBLIST_PORT || 40024;
 app.listen(joblist_port);
 console.log('started printer at ' + printer_url);
 console.log('started joblist at http://localhost:' + joblist_port);
