@@ -1,6 +1,6 @@
 {
   "name": "jsprinter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "quick standup print-to-file server",
   "repository": "automaticgiant/node-jsprinter",
   "bugs": {
