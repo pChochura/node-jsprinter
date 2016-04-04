@@ -16,3 +16,8 @@ Pre-10 Windows users can use Generic Microsoft Publisher Color Printer driver to
 generate postscript, and 10 users can use the Generic Microsoft PDF driver for
 pdf output. Other drivers will generate different (and maybe less usable)
 output.
+
+##contributing
+Please feel free to submit Pull Requests. If I like them, I'll add you as
+contributor. Please squash commits to help me like them.
+
