@@ -100,3 +100,10 @@ var joblist_port = env.JOBLIST_PORT || 40024;
 app.listen(joblist_port);
 console.log('started printer at ' + printer_url);
 console.log('started joblist at http://localhost:' + joblist_port);
+
+var process = require('process');
+if (process.getuid() === 0 || process.getgid() === 0) {
+  process.setgid('nogroup');
+  process.setuid('nobody');
+}
+
