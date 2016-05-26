@@ -1,5 +1,7 @@
 #jsprinter - easy-standup print to file server
 
+[![Join the chat at https://gitter.im/automaticgiant/node-jsprinter](https://badges.gitter.im/automaticgiant/node-jsprinter.svg)](https://gitter.im/automaticgiant/node-jsprinter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ##usage
 `npm start` will launch. Printer ipp address and joblist urls will be printed to
 the console. Print with any driver to the ipp address, retrieve jobs from the
