@@ -12,8 +12,9 @@
   "dependencies": {
     "debug": "^2.2.0",
     "express": "^4.13.3",
-    "file-type": "^3.3.1",
-    "ipp-printer": "*"
+    "ipp-printer": "^1.0.0",
+    "quicksand": "0.0.1",
+    "rc": "^1.1.6"
   },
   "bin": {
     "jsprinter": "./server.js"

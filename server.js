@@ -1,108 +1,98 @@
 #!/usr/bin/env node
 "use strict";
 
-// TODO: change to remove assumed source - use different sources/parts of app
-var debug = require('debug')('jsprinter');
-var fs = require('fs'), path = require('path'), os = require('os');
-var env = require('process').env;
+const logger = require('debug')('jsprinter');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+//const mmm = require('mmmagic');
+//const magic = new mmm.Magic(mmm.MAGIC_MIME_TYPE);
+const env = require('process').env;
 
-// joblist
-var jobs = [];
+const config = require('rc')('jsprinter', {
+  // ipp printer name
+  printerName: 'jsprinter',
+  // ipp port
+  ippPort: 40023,
+  // announce
+  zeroconf: false,
+  // where to put jobs
+  outputPath: 'tmp'
+});
+
+logger(config);
 
 // ipp-printer configuration
-var Printer = require('ipp-printer');
-var printer_conf = {name: 'jsprinter', port: env.IPP_PORT || 40023, zeroconf:
-  false};
-var printer = new Printer(printer_conf);
+const printer = new require('ipp-printer')({
+  name: config.printerName, port: config.ippPort, zeroconf: config.zeroconf
+});
+
+const jobNumberPath = path.join(config.outputPath, '.lastjobno');
+try {
+  printer._jobId = Number(fs.readFileSync(jobNumberPath));
+} catch (e) {
+}
 
 // for display
-var printer_url = 'http://localhost:' + printer_conf.port + '/printers/' +
-                  printer_conf.name;
-// TODO: add to about route with app info
-
+const printer_url = 'http://localhost:' + config.ippPort + '/printers/' +
+  config.printerName;
 
 // register incoming job callback
 printer.on('job', function (job) {
-  // TODO: insert debug switch for incoming job printing
-  //  console.log(job);
-
-  // TODO: set up temp file write
-  //  job.pipe(job.stream);
-
-    // add to joblist
-    debug('got job ' + job.id);
-    jobs[job.id] = job;
-    job.thepath = path.join(os.tmpdir(), '' + Math.random());
-    debug('trying to open ' + job.thepath);
-    function use_fd(err, fd){
-        if (err) {
-          console.error("couldn't open thepath");
-          return;
-        }
-        job.fd = fd;
-        fs.unlink(job.thepath);
-        // still open - important
-        var out = fs.createWriteStream(null, {fd: fd, autoClose: false});
-        job.pipe(out);
-
-    };
-    fs.open(job.thepath, 'w+', use_fd);
+  const name = job.id + '-' + job.name;
+  var status = String();
+  job.on('cancel', ()=>{status+= 'job canceled\n';});
+  job.on('abort', ()=>{status+= 'job aborted\n';});
+  job.on('error', (error)=>{status+= 'job encountered error:\n'+error;});
+  // magic.detectFile(tmpfile, (err,result)=>)
+  const out = fs.createWriteStream(path.join(config.outputPath, name));
+  job.pipe(out);
+  if (status!==String()) fs.writeFile(name + '.status', status, (err)=>{logger('error writing job status file:\n'+err);});
+  fs.writeFile(jobNumberPath,job.id);
+  console.log('handled job: ' + name);
 });
 
-var express = require('express');
-var app = express();
-
-// joblist index route
-app.get('/', function (req, res) {
-    var response = 'printer is at ' + printer_url + '</br>';
-    response += 'jobs:</br><ul>';
-    jobs.forEach(function (current) {
-        response += '<li><a href=/job/' + current.id + '>';
-        response += current.id + ':' + current.name;
-        response += '</a> ';
-        response += '<a href=/job/' + current.id + '?delete>';
-        response += 'forget job';
-        response += '</a>';
-        response += '</li>';
-    });
-    response += '</ul>';
-    res.send(response);
-});
-
-// job access route
-app.get('/job/:id', function (req, res) {
-    var job = jobs[req.params.id];
-    if (job == undefined) {
-    res.sendStatus(404);
-    return;
-    }
-    if (req.query.delete !== undefined) {
-      debug('deleting job ' + job.id);
-      fs.close(job.fd);
-      delete jobs[job.id];
-      //TODO: delete temp
-      res.redirect('back');
-      return;
-    }
-      res.set({
-          'Content-Type': 'application/postscript',
-          'Content-Disposition': 'inline; filename=' + job.id + '.ps'
-      });
-      var content = fs.createReadStream(null, {
-        start:0, fd: job.fd, autoClose: false});
-      content.pipe(res);
-      //res.send(job.content);
-      return;
-    }
-);
-
-var joblist_port = env.JOBLIST_PORT || 40024;
-app.listen(joblist_port);
 console.log('started printer at ' + printer_url);
-console.log('started joblist at http://localhost:' + joblist_port);
 
-var process = require('process');
-if (process.getuid() === 0 || process.getgid() === 0) {
+// this sucks - clean up/replace - it was copypastad from quicksand's server.js
+const http = require('http');
+const quicksandConfig = require('rc')('quicksand', {
+  port: eval(config.ippPort)+1,
+  storeLocation: config.outputPath,
+  ageMax: 12*60*60*1000,
+  pollFrequency: 5*1000
+});
+quicksandConfig.ageMax = eval(quicksandConfig.ageMax);
+quicksandConfig.port = eval(quicksandConfig.port);
+quicksandConfig.pollFrequency = eval(quicksandConfig.pollFrequency);
+
+const Quicksand = new require('quicksand');
+const quicksand = new Quicksand(quicksandConfig);
+const app = quicksand.app;
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+app.set('port', quicksandConfig.port);
+var server = http.createServer(app);
+server.listen(quicksandConfig.port);
+require('debug')('quicksand:server')('Quicksand started on port ' + quicksandConfig.port);
+
+const process = require('process');
+if (process.platform !== 'win32' && (process.getuid() === 0 || process.getgid() === 0)) {
   process.setgid('nogroup');
   process.setuid('nobody');
 }

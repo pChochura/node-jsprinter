@@ -1,8 +1,0 @@
-joblist template:
-  give job extension/mimetype using module mmmagic
-  pug/pug-browser
-  download/forget links
-  js to send delete
-
-client side error reporting:
-  add put/post for client errors to send them serverside
