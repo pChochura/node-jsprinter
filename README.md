@@ -1,25 +1,9 @@
-#jsprinter - easy-standup print to file server
+# Setup
 
-[![Join the chat at https://gitter.im/automaticgiant/node-jsprinter](https://badges.gitter.im/automaticgiant/node-jsprinter.svg)](https://gitter.im/automaticgiant/node-jsprinter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+To start the program that opens a port 40023 hosting a local network printer, just type:
 
-##usage
-`npm start` will launch. Printer ipp address and joblist urls will be printed to
-the console. Print with any driver to the ipp address, retrieve jobs from the
-joblist address. The jobs will be cleared/lost when the server is stopped.
+> npm start
 
-Environment variables can be used to specify ports:
-```
-JOBLIST_PORT=80 IPP_PORT=632 DEBUG=jsprinter npm start
-```
+Then you have to install the printer on your system by executing the `install_printer.ps1` program (you have to escalate privileges on your shell to do that)
 
-If run as root, should de-escalate to nobody:nogroup.
-
-Pre-10 Windows users can use Generic Microsoft Publisher Color Printer driver to
-generate postscript, and 10 users can use the Generic Microsoft PDF driver for
-pdf output. Other drivers will generate different (and maybe less usable)
-output.
-
-##contributing
-Please feel free to submit Pull Requests. If I like them, I'll add you as
-contributor. Please squash commits to help me like them.
-
+> Powershell.exe -ExecutionPolicy Bypass -File install_printer.ps1

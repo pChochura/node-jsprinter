@@ -39,17 +39,16 @@ const printer_url = 'http://localhost:' + config.ippPort + '/printers/' +
 
 // register incoming job callback
 printer.on('job', function (job) {
-  const name = job.id + '-' + job.name;
-  var status = String();
-  job.on('cancel', ()=>{status+= 'job canceled\n';});
-  job.on('abort', ()=>{status+= 'job aborted\n';});
-  job.on('error', (error)=>{status+= 'job encountered error:\n'+error;});
-  // magic.detectFile(tmpfile, (err,result)=>)
-  const out = fs.createWriteStream(path.join(config.outputPath, name));
-  job.pipe(out);
-  if (status!==String()) fs.writeFile(name + '.status', status, (err)=>{logger('error writing job status file:\n'+err);});
-  fs.writeFile(jobNumberPath,job.id);
-  console.log('handled job: ' + name);
+  console.log('[job %d] Printing document: %s', job)
+ 
+  var filename = 'job-' + job.id + '.pdf'
+  var file = fs.createWriteStream(filename)
+ 
+  job.on('end', function () {
+    console.log('[job %d] Document saved as %s', job.id, filename)
+  })
+ 
+  job.pipe(file)
 });
 
 console.log('started printer at ' + printer_url);
